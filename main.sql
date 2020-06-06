@@ -124,6 +124,7 @@ CREATE TABLE `seccion` (
     `id_page` int NOT NULL,
     `nombre` varchar(100) NOT NULL,
     `descripcion` varchar(500) NOT NULL,
+    `estado` TINYINT NOT NULL DEFAULT 1,
     PRIMARY KEY(`id`),
     CONSTRAINT `fk_id_page` FOREIGN KEY (`id_page`) REFERENCES `page` (`id`) ON DELETE RESTRICT
 )

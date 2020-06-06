@@ -10,8 +10,8 @@ class ContentService implements ContentIService
     public function __construct()
     {
 		$this->contentDao = new ContentDao();
-    }	
-    
+    }
+
     public function findAll($final)
     {
 		return $this->contentDao->selectAll($final);
