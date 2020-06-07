@@ -1,7 +1,7 @@
 <?php
 class Views
 {
-    public $param =  array();
+    public $param = array();
     public $url = "http://localhost/new/pg/";
 
     function __construct()
