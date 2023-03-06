@@ -16,3 +16,5 @@ Las otras variables se recomienda no modificar.
 crear las tablas con el script ./main.sql y cambiar el nombre de la BD en la primera linea.
 
 cambiar la direccion de los estilos y archivos js en ./view/layout/assets.css.php y ./view/layout/assets.js.php
+
+cambiar el valor de la variable $url de la linea 5, en ./libraries/view.php
