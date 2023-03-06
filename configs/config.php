@@ -3,10 +3,10 @@ const LBS = "libraries/";
 const VIEWS = "views/";
 define("DFT", "layout/");
 define("RQ", "resources/");
-define("URL", "http://localhost/new/pg");
+define("URL", "http://cubewin.net.pe/crud");
 
 define('HOST', 'localhost');
 define('DB', 'sgcw');
 define('USER', 'dataNull');
-define('PASSWORD', "DataNull2321");
+define('PASSWORD', '');
 define('CHARSET', 'utf8mb4');

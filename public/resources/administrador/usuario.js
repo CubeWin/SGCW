@@ -91,7 +91,6 @@ function activeSearch() {
     let newbuscar=buscar.split(" ");
     usuario.listarPersona(newbuscar[0]);
     document.querySelector(".cw-search-box").classList.add("cw-search-active");
-    
 }
 
 function closeSearch() {

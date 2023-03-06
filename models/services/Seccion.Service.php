@@ -2,7 +2,7 @@
 require "./models/data/Seccion.Dao.php";
 require "./models/services/Seccion.IService.php";
 
-class SeccionService  implements SeccionIService
+class SeccionService implements SeccionIService
 {
 
     public $seccionDao = null;
@@ -47,6 +47,7 @@ class SeccionService  implements SeccionIService
         return $this->seccionDao->createDetalleTexto($seccion, $bloque, $id_detalle);
     }
 
+    /** */
     public function readDetalleTextoById($id)
     {
         return $this->seccionDao->readDetalleTexto($id);

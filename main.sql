@@ -212,48 +212,53 @@ VALUES (2, 'TEXTO1', 1), (2, 'TEXTO2', 2), (2, 'TEXTO3', 3), (3, 'TEXTO4', 2), (
  * ### PERSONA
  */
 INSERT INTO `persona` (name, surname, email, telephone, gender, state )
-VALUES ('Eliud', 'Pedraza Churata', 'eliud16pc@hotmail.com', '925940807', 1, 1);
+VALUES ('Eliud', 'Pedraza Churata', 'eliud16pc@hotmail.com', '955102047', 1, 1);
 /**
  * ### USUARIO
  */
 INSERT INTO `usuario` (id_persona, user, password, id_grupo, state)
 VALUES (1, 'admin', '$2a$12$dByMLhnvPEi7UtUDE6msOePDoRYWeMQVK0olY.HZB67Ed5eEWXnGK', 1, 1);
-/**
- *
- */
 
+/**
+ * creamos el procedimiento `temp`
+ */
 DROP PROCEDURE IF EXISTS `temp`;
 DELIMITER $$
 CREATE PROCEDURE `temp` (
-    IN _id_seccion int,
-    INOUT rtn_html TEXT(20000)
+    IN _id_seccion int
 )
 BEGIN
     DECLARE finished int DEFAULT 0;
-    DECLARE respuesta_html TEXT(20000);
+    DECLARE rtn_html TEXT DEFAULT "";
+
+    DECLARE html_in_content TEXT DEFAULT "";
+
     DECLARE cod_id int DEFAULT 0;
     DECLARE cod_id_bloque int DEFAULT 0;
     DECLARE cod_id_detalle int DEFAULT 0;
-    DECLARE cod_html varchar(500);
-    DECLARE cod_contador int DEFAULT 0;
+    DECLARE cod_html TEXT;
+    DECLARE cod_contenedor int DEFAULT 0;
+
     /** consulta select para crear el cursor */
     DECLARE cursor_detalle CURSOR FOR
-    SELECT D.id, D.id_bloque, D.id_detalle, IFNULL( CH.html, ( SELECT contenido FROM detalle_texto WHERE id_detalle = D.id AND Linea = CE.linea)) html, CE.contenedor
+    SELECT D.id, D.id_bloque, IFNULL(D.id_detalle, 0) id_detalle, IFNULL(IFNULL( CH.html, ( SELECT contenido FROM detalle_texto WHERE id_detalle = D.id AND Linea = CE.linea)), "") html, IFNULL(CE.contenedor, 0) contenedor
     FROM detalle D
         INNER JOIN bloque B ON D.id_bloque = B.id
         INNER JOIN contenido_html CH ON B.id = CH.id_bloque
         LEFT JOIN contenido_editable CE ON CH.id = CE.id_contenido_html
-    WHERE id_seccion = 1
+    WHERE id_seccion = _id_seccion
         AND id_detalle IS NULL;
     DECLARE CONTINUE HANDLER FOR NOT FOUND
         SET finished = 1;
+
     /** eliminamos si existe la vista */
     PREPARE Dstmt FROM 'DROP VIEW IF EXISTS html_temp';
     EXECUTE Dstmt;
     DEALLOCATE PREPARE Dstmt;
+
     /** preparamos la consulta para crear una vista temporal */
     PREPARE cstmt FROM 'CREATE VIEW html_temp AS
-        SELECT D.id, D.id_detalle, IFNULL(CH.html, (SELECT contenido FROM detalle_texto WHERE id_detalle = D.id AND Linea = CE.linea)) html, CE.contenedor
+        SELECT D.id, D.id_detalle, IFNULL(IFNULL(CH.html, (SELECT contenido FROM detalle_texto WHERE id_detalle = D.id AND Linea = CE.linea)), "") html, CE.contenedor
         FROM detalle D inner JOIN bloque B ON D.id_bloque = B.id
         INNER JOIN contenido_html CH ON B.id = CH.id_bloque
         LEFT JOIN contenido_editable CE ON CH.id = CE.id_contenido_html
@@ -261,56 +266,66 @@ BEGIN
         ORDER BY D.id, CH.id';
     EXECUTE cstmt;
     DEALLOCATE PREPARE cstmt;
+
     /** aperturamos el cursor */
     OPEN cursor_detalle;
     cursor_detalle_loop: LOOP
-        FETCH cursor_detalle INTO cod_id, cod_id_bloque, cod_id_detalle, cod_html, cod_contador;
+        FETCH cursor_detalle INTO cod_id, cod_id_bloque, cod_id_detalle, cod_html, cod_contenedor;
+
         IF finished = 1 THEN
             LEAVE cursor_detalle_loop;
         END IF;
-        /* PENSAR */
-        IF cod_contador = 1 THEN
-            SET @@GLOBAL.max_sp_recursion_depth = 255;
-            SET @@session.max_sp_recursion_depth = 255;
-            CALL `temp_2` (cod_id, respuesta_html);
-            SET rtn_html = CONCAT(rtn_html, respuesta_html);
-            -- SET respuesta_html = "";
+        /* llamamos al otro procedimiento */
+        IF cod_contenedor = 1 THEN
+            SET @@GLOBAL.max_sp_recursion_depth = 255; /* recursive */
+            SET @@session.max_sp_recursion_depth = 255; /* recursive */
+            CALL `temp_2` (cod_id, html_in_content);
+            SET rtn_html = CONCAT(rtn_html, html_in_content);
+            -- SET html_in_content = "";
         ELSE
             SET rtn_html = CONCAT(rtn_html, cod_html);
         END IF;
-        SELECT rtn_html;
+
     END LOOP;
     CLOSE cursor_detalle;
-    -- select * FROM html_temp WHERE id_detalle IS NULL;
+    select rtn_html;
+
+    /** eliminar vista */
     PREPARE Vstmt FROM 'DROP VIEW html_temp';
     EXECUTE Vstmt;
     DEALLOCATE PREPARE Vstmt;
+
 END $$
 DELIMITER ;
+
 /**
- *
+ * creamos el procedimiento temp_2
  */
 DROP PROCEDURE IF EXISTS `temp_2`;
 DELIMITER $$
-CREATE PROCEDURE `temp_2` (
+CREATE PROCEDURE `temp_2`(
     IN _id_detalle int,
-    INOUT rtn_html TEXT(20000)
+    INOUT rtn_html TEXT
 )
 BEGIN
     DECLARE finished int DEFAULT 0;
-    DECLARE respuesta_html TEXT(20000);
-    DECLARE ct_id int;
-    DECLARE ct_id_detalle int;
-    DECLARE ct_html varchar(500);
-    DECLARE ct_contenedor int;
-    DECLARE ct_rtn TEXT(20000);
-        /** consulta select para crear el cursor */
+    DECLARE respuesta_html TEXT DEFAULT "";
+
+    DECLARE ct_id int DEFAULT 0;
+    DECLARE ct_id_detalle int DEFAULT 0;
+    DECLARE ct_html TEXT DEFAULT "";
+    DECLARE ct_contenedor int DEFAULT 0;
+
+    DECLARE ct_rtn TEXT DEFAULT "";
+
+    /** consulta select para crear el cursor */
     DECLARE cursor_temp CURSOR FOR
         SELECT id, id_detalle, html, contenedor
         FROM html_temp
         WHERE id_detalle = _id_detalle;
     DECLARE CONTINUE HANDLER FOR NOT FOUND
         SET finished = 1;
+
     /** aperturamos el cursor */
     OPEN cursor_temp;
     cursor_temp_loop: LOOP
@@ -318,20 +333,23 @@ BEGIN
         IF finished = 1 THEN
             LEAVE cursor_temp_loop;
         END IF;
+
         IF ct_contenedor = 1 THEN
             CALL `temp_2` (ct_id, respuesta_html);
-            SET rtn_html = CONCAT(rtn_html, respuesta_html);
-            -- SET respuesta_html = "";
+            SET ct_rtn = CONCAT(ct_rtn, respuesta_html);
+            SET respuesta_html = "";
+            -- SELECT ct_rtn;
         ELSE
-            SET rtn_html = CONCAT(rtn_html, ct_html);
+            SET ct_rtn = CONCAT(ct_rtn, ct_html);
         END IF;
     END LOOP;
+
+    SET  rtn_html = CONCAT(rtn_html, ct_rtn);
     CLOSE cursor_temp;
 END $$
 DELIMITER ;
+
 /**
- *
+ * executamos el procedimiento `temp`
  */
-SET @html_temp = "=>";
-CALL `temp` (1, @html_temp);
-SELECT @html_temp;
+CALL `temp` (1);

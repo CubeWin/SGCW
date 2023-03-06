@@ -405,8 +405,6 @@ EXECUTE cstmt;
 DEALLOCATE PREPARE stmt;
 END $ $ DELIMITER;
 
-
-
 /**
  *
  */
@@ -442,7 +440,8 @@ DROP PROCEDURE IF EXISTS `temp`;
 DELIMITER $$ CREATE PROCEDURE `temp` (
     IN _id_seccion int,
     INOUT rtn_html varchar(20000)
-) BEGIN DECLARE finished int DEFAULT 0;
+) BEGIN
+DECLARE finished int DEFAULT 0;
 DECLARE respuesta_html varchar(20000);
 DECLARE cod_id int DEFAULT 0;
 DECLARE cod_id_bloque int DEFAULT 0;

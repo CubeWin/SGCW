@@ -8,7 +8,7 @@ class Conexion
 	private $charset;
 
 	function __construct()
-	{ 
+	{
 		$this->host     = constant('HOST');
 		$this->db       = constant('DB');
 		$this->user     = constant('USER');

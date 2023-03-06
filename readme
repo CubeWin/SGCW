@@ -1,0 +1,18 @@
+Single CRUD in PHP
+
+Este proyecto esta realizado como un todo en uno.
+
+##Primero se debe configurar el archivo ./configs/config.php
+
+"URL", Dirección donde se encuentra el proyecto.
+
+"HOST", Host de la BD.
+"DB", Nombre de la BD.
+"USER", Usuario con permisos de usar la BD.
+"PASSWORD", Clave del usuario.
+
+Las otras variables se recomienda no modificar.
+
+crear las tablas con el script ./main.sql y cambiar el nombre de la BD en la primera linea.
+
+cambiar la direccion de los estilos y archivos js en ./view/layout/assets.css.php y ./view/layout/assets.js.php
